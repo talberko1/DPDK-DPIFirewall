@@ -24,7 +24,7 @@ public:
 
     public:
 
-        bool m_DhcpEnabled;
+        bool m_DhcpEnabled = false;
         std::uint16_t m_ServerPortNumber;
         std::string m_ServerIpAddress;
 
@@ -37,9 +37,7 @@ public:
 
     };
 
-public:
-
-    explicit DPIServer(std::uint16_t packetBurstSize, DPIServerArgs &args);
+    explicit DPIServer(DPIServerArgs &args);
 
     ~DPIServer() override;
 
@@ -61,7 +59,7 @@ private:
 
     bool IsTransportLayerRequest(const pcpp::Packet &packet) const;
 
-    static bool IsApplicationLayerRequest(const pcpp::Packet &request) ;
+    static bool IsApplicationLayerRequest(const pcpp::Packet &request);
 
     void HandleDhcp(pcpp::DhcpLayer *dhcpLayer) const;
 

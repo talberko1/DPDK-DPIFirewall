@@ -34,7 +34,6 @@ public:
         std::uint16_t m_RxQueues = 1;
         std::uint16_t m_TxQueues = 1;
         std::uint16_t m_MaxBurstSize = 64;
-        std::uint16_t m_MBufPoolSize = 16 * 1024 - 1;
 
     };
 

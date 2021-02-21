@@ -15,13 +15,6 @@ DpdkServer::MultiQueueException::MultiQueueException(std::uint16_t rxQueues, std
 
 DpdkServer::DpdkServer(DpdkServerArgs &args) : MBufServer(args.m_MaxBurstSize) {
 
-    std::cout << "Initializing DPDK..." << std::endl;
-    bool dpdkInitialized = pcpp::DpdkDeviceList::initDpdk(pcpp::getCoreMaskForAllMachineCores(), args.m_MBufPoolSize);
-    if (!dpdkInitialized) {
-        throw DpdkInitializationError();
-    }
-    std::cout << "Successfully initialized DPDK!" << std::endl;
-
     std::cout << "[DpdkServer] Creating server..." << std::endl;
     std::cout << "[DpdkServer] Activating DPDK device..." << std::endl;
     m_Device = pcpp::DpdkDeviceList::getInstance().getDeviceByPort(args.m_DpdkPortId);

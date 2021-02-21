@@ -7,7 +7,7 @@
 DPIServer::InvalidIpAddressException::InvalidIpAddressException(const std::string &address) : runtime_error(
         "Invalid IP address: " + address) {}
 
-DPIServer::DPIServer(std::uint16_t packetBurstSize, DPIServer::DPIServerArgs &args) : DpdkServer(
+DPIServer::DPIServer(DPIServer::DPIServerArgs &args) : DpdkServer(
         args), m_DhcpEnabled(args.m_DhcpEnabled), m_PortNumber(args.m_ServerPortNumber), m_IpAddress(
         args.m_ServerIpAddress) {
     if (!m_IpAddress.isValid()) throw InvalidIpAddressException(m_IpAddress.toString());
