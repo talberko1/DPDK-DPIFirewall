@@ -69,8 +69,6 @@ protected:
 
     virtual void Process(const pcpp::Packet &packet) = 0;
 
-    virtual void HandleRequest(const pcpp::Packet &packet) = 0;
-
 private:
 
     void HandleServerRunning() override;

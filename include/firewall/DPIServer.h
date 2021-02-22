@@ -47,7 +47,7 @@ protected:
 
     void HandleServerShutdown() override;
 
-    void HandleRequest(const pcpp::Packet &packet) override;
+    void HandleRequest(const pcpp::Packet &packet);
 
 private:
 
