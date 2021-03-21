@@ -2,16 +2,23 @@
 // Created by tal on 30/01/2021.
 //
 
+#include <PcapFileCreator.h>
 #include "firewall/DPIServer.h"
 
 DPIServer::InvalidIpAddressException::InvalidIpAddressException(const std::string &address) : runtime_error(
         "Invalid IP address: " + address) {}
 
 DPIServer::DPIServer(DPIServer::DPIServerArgs &args) : DpdkServer(
-        args), m_DhcpEnabled(args.m_DhcpEnabled), m_PortNumber(args.m_ServerPortNumber), m_IpAddress(
-        args.m_ServerIpAddress) {
+        args), m_DhcpEnabled(args.m_DhcpEnabled),
+        m_PortNumber(args.m_ServerPortNumber),
+        m_IpAddress(args.m_ServerIpAddress),
+        m_LogWriter("unfiltered.pcap"),
+        m_FilteredWriter("filtered.pcap")
+        {
     if (!m_IpAddress.isValid()) throw InvalidIpAddressException(m_IpAddress.toString());
-    std::cout << "[Firewall] constructor" << std::endl;
+    std::cout << "[Firewall] MAC Address: " << m_Device->getMacAddress().toString() << std::endl;
+    std::cout << "[Firewall] IP Address: " << m_IpAddress.toString() << std::endl;
+    std::cout << "[Firewall] Running on port " << args.m_ServerPortNumber << std::endl;
 }
 
 DPIServer::~DPIServer() {
@@ -34,12 +41,12 @@ bool DPIServer::IsDataLinkLayerRequest(const pcpp::Packet &request) {
 }
 
 bool DPIServer::IsNetworkLayerRequest(const pcpp::Packet &request) {
-
-    if (m_IpAddress.isIPv4() && request.isPacketOfType(pcpp::IPv4)) {
-        return m_IpAddress.getIPv4() == request.getLayerOfType<pcpp::IPv4Layer>()->getDstIpAddress();
+    return true;
+    if (m_IpAddress.isIPv4()) {
+//        return m_IpAddress.getIPv4() == request.getLayerOfType<pcpp::IPv4Layer>()->getDstIpAddress();
     }
-    if (m_IpAddress.isIPv6() && request.isPacketOfType(pcpp::IPv6)) {
-        return m_IpAddress.getIPv6() == request.getLayerOfType<pcpp::IPv6Layer>()->getDstIpAddress();
+    if (m_IpAddress.isIPv6()) {
+//        return m_IpAddress.getIPv6() == request.getLayerOfType<pcpp::IPv6Layer>()->getDstIpAddress();
     }
     return false;
 
@@ -81,33 +88,56 @@ void DPIServer::Process(const pcpp::Packet &packet) {
                 HandleIcmp(packet.getLayerOfType<pcpp::IcmpLayer>());
 
             } else if (IsTransportLayerRequest(packet)) {
-                if (IsApplicationLayerRequest(packet))
+                std::cout << "here" << std::endl;
+                auto *tcp = packet.getLayerOfType<pcpp::TcpLayer>();
+                std::cout << "Sender: " << tcp->getTcpHeader()->portSrc << std::endl;
+                if (IsApplicationLayerRequest(packet)) {
+                    auto *fw = packet.getLayerOfType<FirewallLayer>();
+                    std::cout << "Sender: " << fw->GetOpcode() << std::endl;
+                    std::cout << "Received request!" << std::endl;
                     HandleRequest(packet);
+                }
             }
         }
     }
 
 }
 
+void DPIServer::Filter(const std::string &unfiltered, const std::string &filtered) {
+
+}
+
 void DPIServer::HandleRequest(const pcpp::Packet &request) {
+    std::cout << "RECEIVED REQUEST!!!" << std::endl;
     pcpp::Packet response;
 
     CreateResponseFromRequest(request, response);
+
+    auto *payloadLayer = request.getLayerOfType<pcpp::PayloadLayer>();
+
+    PcapFileCreator::createFileFromBytes("unfiltered.pcap", payloadLayer->getPayload(), payloadLayer->getPayloadLen());
+
+    Filter("unfiltered.pcap", "filtered.pcap");
 
     m_Device->sendPacket(response, 0);
 }
 
 void DPIServer::CreateResponseFromRequest(const pcpp::Packet &request, pcpp::Packet &response) {
 
+    std::uint8_t *data = PcapFileCreator::createByteStreamFromFile("filtered.pcap");
+    std::size_t length = PcapFileCreator::getFileSize("filtered.pcap");
+
     pcpp::Layer *responseEthernetLayer = AllocateResponseDataLinkLayer(request);
     pcpp::Layer *responseIpLayer = AllocateResponseNetworkLayer(request);
     pcpp::Layer *responseTransportLayer = AllocateResponseTransportLayer(request);
     pcpp::Layer *responseApplicationLayer = AllocateResponseApplicationLayer(request);
+    pcpp::Layer *payloadLayer = new pcpp::PayloadLayer(data, length, false);
 
     response.addLayer(responseEthernetLayer, true);
     response.addLayer(responseIpLayer, true);
     response.addLayer(responseTransportLayer, true);
     response.addLayer(responseApplicationLayer, true);
+    response.addLayer(payloadLayer, true);
 
 }
 

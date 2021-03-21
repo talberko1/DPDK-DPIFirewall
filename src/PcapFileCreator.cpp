@@ -3,27 +3,29 @@
 //
 
 #include <cstdlib>
+#include <string>
 #include "PcapFileCreator.h"
 
-void PcapFileCreator::createFileFromBytes(const char *fileName, char *buffer, long fileSize) {
-    FILE *file = fopen(fileName, "wb");
-    fwrite(buffer, fileSize, 1, file);
+void PcapFileCreator::createFileFromBytes(const std::string &fileName, std::uint8_t *stream, std::size_t length) {
+    FILE *file = fopen(fileName.c_str(), "wb");
+    fwrite(stream, 1, length, file);
     fclose(file);
 }
 
-long PcapFileCreator::getFileSize(const char *fileName) {
-    FILE *file = fopen(fileName, "rb");
+std::size_t PcapFileCreator::getFileSize(const std::string &name) {
+    FILE *file = fopen(name.c_str(), "rb");
     fseek(file, 0, SEEK_END);
-    long fileSize = ftell(file);
+    std::size_t fileSize = ftell(file);
     fseek(file, 0, SEEK_SET);
     rewind(file);
     fclose(file);
     return fileSize;
 }
 
-char *PcapFileCreator::createByteStreamFromFile(const char *name, long fileSize) {
-    FILE *pcap_file = fopen(name, "rb");
-    char *buffer = (char *) malloc(fileSize * sizeof(char));
-    fread(buffer, fileSize, 1, pcap_file);
-    return buffer;
+std::uint8_t *PcapFileCreator::createByteStreamFromFile(const std::string &name) {
+    FILE *pcap_file = fopen(name.c_str(), "rb");
+    std::size_t size = getFileSize(name);
+    auto *stream = new std::uint8_t[size];
+    fread(stream, 1, size, pcap_file);
+    return stream;
 }

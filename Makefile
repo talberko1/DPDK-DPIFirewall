@@ -84,7 +84,7 @@ OUTPUT	:=	-o
 
 #---RECURSIVE WILDCARD FUNCTION---
 
-recursive_wildcard=$(foreach d,$(wildcard $(1:=/*)),$(call recursive_wildcard,$d,$2,)	$(filter $(subst *,%,$2),$d))
+recursive_wildcard=$(foreach d,$(wildcard $(1:=/*)),$(call recursive_wildcard,$d,$2)	$(filter $(subst *,%,$2),$d))
 
 #---GETTING ALL SOURCE FILES USING THE RECURSIVE WILDCARD FUNCTION---
 

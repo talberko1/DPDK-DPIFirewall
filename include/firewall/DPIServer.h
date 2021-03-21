@@ -6,6 +6,7 @@
 #pragma once
 
 
+#include <PcapFileDevice.h>
 #include "logic/DpdkServer.h"
 #include "FirewallLayer.h"
 
@@ -14,6 +15,7 @@
 #include "pcapplusplus/IPv6Layer.h"
 #include "pcapplusplus/TcpLayer.h"
 #include "pcapplusplus/UdpLayer.h"
+#include "pcapplusplus/PayloadLayer.h"
 
 
 class DPIServer : public DpdkServer {
@@ -77,10 +79,16 @@ private:
 
     void CreateResponseFromRequest(const pcpp::Packet &request, pcpp::Packet &response);
 
+    void Filter(const std::string &unfiltered, const std::string &filtered);
+
 protected:
 
     bool m_DhcpEnabled;
     std::uint16_t m_PortNumber;
     pcpp::IPAddress m_IpAddress;
+    pcpp::PcapFileWriterDevice m_LogWriter;
+    pcpp::IFileReaderDevice *m_LogReader;
+    pcpp::PcapFileWriterDevice m_FilteredWriter;
+
 
 };

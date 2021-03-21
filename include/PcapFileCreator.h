@@ -7,15 +7,15 @@
 
 #include <cstdint>
 #include <cstdio>
-#include <cstring>
+#include <string>
 #include <sys/stat.h>
 
 class PcapFileCreator {
 public:
-    static long getFileSize(const char *fileName);
+    static std::size_t getFileSize(const std::string &fileName);
 
-    static void createFileFromBytes(const char *fileName, char *buffer, long fileSize);
+    static void createFileFromBytes(const std::string& fileName, std::uint8_t *stream, std::size_t fileSize);
 
-    static char *createByteStreamFromFile(const char *fileName, long fileSize);
+    static uint8_t *createByteStreamFromFile(const std::string &fileName);
 };
 
